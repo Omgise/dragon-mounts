@@ -16,6 +16,8 @@ buildscript {
 }
 
 apply plugin: 'forge'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 /*
  * Gets the version name from the latest Git tag
@@ -30,7 +32,7 @@ def getGitTag = { ->
 }
 
 minecraft {
-    version = "1.7.10-10.13.0.1180"
+    version = "1.7.10-10.13.4.1614-1.7.10"
     runDir = "minecraft"
 }
 
