@@ -9,6 +9,8 @@
  */
 package info.ata4.minecraft.dragon.server.entity.helper;
 
+import info.ata4.minecraft.dragon.DragonMountsConfig;
+
 /**
  * Enum for dragon life stages. Used as aliases for the age value of dragons.
  * 
@@ -16,9 +18,9 @@ package info.ata4.minecraft.dragon.server.entity.helper;
  */
 public enum DragonLifeStage {
     
-    EGG(-72000),
-    HATCHLING(-48000),
-    JUVENILE(-24000),
+    EGG(-DragonMountsConfig.eggToHatchlingTime),
+    HATCHLING(-DragonMountsConfig.hatchlingToJuvenileTime),
+    JUVENILE(-DragonMountsConfig.juvenileToAdultTime),
     ADULT(0);
     
     public final int ageLimit;
