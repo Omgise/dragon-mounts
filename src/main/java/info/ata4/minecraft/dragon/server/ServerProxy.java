@@ -16,7 +16,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
-import info.ata4.minecraft.dragon.DragonMounts;
+import info.ata4.minecraft.dragon.DragonMountsConfig;
 import info.ata4.minecraft.dragon.server.cmd.CommandDragon;
 import info.ata4.minecraft.dragon.server.entity.EntityTameableDragon;
 import info.ata4.minecraft.dragon.server.handler.DragonEggBlockHandler;
@@ -45,7 +45,7 @@ public class ServerProxy {
     public void onInit(FMLInitializationEvent evt) {
         registerEntities();
 
-        if (DragonMounts.instance.getConfig().isEggsInChests()) {
+        if (DragonMountsConfig.eggsInChests) {
             registerChestItems();
         }
         
@@ -65,7 +65,7 @@ public class ServerProxy {
     }
     
     private void registerEntities() {
-        int dragonEntityID = DragonMounts.instance.getConfig().getDragonEntityID();
+        int dragonEntityID = DragonMountsConfig.dragonEntityID;
         if (dragonEntityID == -1) {
             dragonEntityID = EntityRegistry.findGlobalUniqueEntityId();
         }

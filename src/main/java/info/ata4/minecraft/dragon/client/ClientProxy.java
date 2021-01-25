@@ -13,6 +13,7 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import info.ata4.minecraft.dragon.DragonMounts;
+import info.ata4.minecraft.dragon.DragonMountsConfig;
 import info.ata4.minecraft.dragon.client.gui.GuiDragonDebug;
 import info.ata4.minecraft.dragon.client.handler.DragonControl;
 import info.ata4.minecraft.dragon.client.handler.DragonEntityWatcher;
@@ -39,7 +40,7 @@ public class ClientProxy extends ServerProxy {
         
         MinecraftForge.EVENT_BUS.register(new DragonSplash());
         
-        if (DragonMounts.instance.getConfig().isDebug()) {
+        if (DragonMountsConfig.debug) {
             MinecraftForge.EVENT_BUS.register(new GuiDragonDebug());
         }
     }

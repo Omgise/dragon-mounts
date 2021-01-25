@@ -13,6 +13,7 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import info.ata4.minecraft.dragon.DragonMounts;
+import info.ata4.minecraft.dragon.DragonMountsConfig;
 import info.ata4.minecraft.dragon.client.model.anim.DragonAnimator;
 import info.ata4.minecraft.dragon.server.entity.ai.DragonBodyHelper;
 import info.ata4.minecraft.dragon.server.entity.ai.EntityAITemptOreDictionary;
@@ -93,8 +94,8 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public static final float BASE_WIDTH = 4;
     public static final float BASE_HEIGHT = 3f;
     public static final int HOME_RADIUS = 256;
-    public static final String FAVORITE_FOOD_OD_TAG = DragonMounts.instance.getConfig().getDragonFavoriteFoodTag();
-    public static final String ALL_FOOD_OD_TAG = DragonMounts.instance.getConfig().getDragonAllFoodTag();
+    public static final String FAVORITE_FOOD_OD_TAG = DragonMountsConfig.dragonFavoriteFoodTag;
+    public static final String ALL_FOOD_OD_TAG = DragonMountsConfig.dragonAllFoodTag;
     
     // data value IDs
     private static final int INDEX_SADDLED = 20;
@@ -173,7 +174,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         addHelper(new DragonReproductionHelper(this, INDEX_BREEDER, INDEX_REPRO_COUNT));
         addHelper(new DragonParticleHelper(this));
         
-        if (DragonMounts.instance.getConfig().isDebug()) {
+        if (DragonMountsConfig.debug) {
             addHelper(new DragonDebug(this));
         }
         

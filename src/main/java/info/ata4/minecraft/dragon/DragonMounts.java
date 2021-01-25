@@ -51,11 +51,6 @@ public class DragonMounts {
     public static DragonMounts instance;
     
     private ModMetadata metadata;
-    private DragonMountsConfig config;
-    
-    public DragonMountsConfig getConfig() {
-        return config;
-    }
     
     public ModMetadata getMetadata() {
         return metadata;
@@ -63,10 +58,10 @@ public class DragonMounts {
     
     @EventHandler
     public void onPreInit(FMLPreInitializationEvent evt) {
-        config = new DragonMountsConfig(new Configuration(evt.getSuggestedConfigurationFile()));
+        DragonMountsConfig.LoadDragonMountsConfig(new Configuration(evt.getSuggestedConfigurationFile()));
         metadata = evt.getModMetadata();
         
-        if(instance.getConfig().getRegisterMeatToOreDictionary()) {
+        if(DragonMountsConfig.registerMeatToOreDictionary) {
         	OreDictionary.registerOre("listAllmeatraw", Items.beef);
         	OreDictionary.registerOre("listAllmeatraw", Items.chicken);
         	OreDictionary.registerOre("listAllmeatraw", Items.porkchop);
