@@ -19,24 +19,12 @@ apply plugin: 'forge'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-/*
- * Gets the version name from the latest Git tag
- */
-def getGitTag = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'describe', '--tags'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
-}
-
 minecraft {
     version = "1.7.10-10.13.4.1614-1.7.10"
     runDir = "minecraft"
 }
 
-version =  "${getGitTag()}-${minecraft.version}"
+version =  "r42-1.7.10"
 group = "info.ata4.minecraft.dragon"
 archivesBaseName = "DragonMounts"
 
