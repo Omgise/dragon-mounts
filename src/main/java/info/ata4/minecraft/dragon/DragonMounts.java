@@ -19,7 +19,9 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import info.ata4.minecraft.dragon.server.ServerProxy;
+import net.minecraft.init.Items;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * Main control class for Forge.
@@ -63,6 +65,13 @@ public class DragonMounts {
     public void onPreInit(FMLPreInitializationEvent evt) {
         config = new DragonMountsConfig(new Configuration(evt.getSuggestedConfigurationFile()));
         metadata = evt.getModMetadata();
+        
+        if(instance.getConfig().getRegisterMeatToOreDictionary()) {
+        	OreDictionary.registerOre("listAllmeatraw", Items.beef);
+        	OreDictionary.registerOre("listAllmeatraw", Items.chicken);
+        	OreDictionary.registerOre("listAllmeatraw", Items.porkchop);
+        	OreDictionary.registerOre("listAllfishraw", Items.fish);
+        }
     }
 
     @EventHandler

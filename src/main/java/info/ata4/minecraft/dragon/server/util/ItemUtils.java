@@ -10,6 +10,8 @@
 
 package info.ata4.minecraft.dragon.server.util;
 
+import java.util.ArrayList;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
@@ -60,6 +62,34 @@ public class ItemUtils {
                 }
 
                 return item;
+            }
+        }
+        
+        return null;
+    }
+    
+    public static Item consumeEquipped(EntityPlayer player, ArrayList<ItemStack> itemStacks) {
+        ItemStack itemStack = player.getCurrentEquippedItem();
+        
+        if (itemStack == null) {
+            return null;
+        }
+        
+        Item equippedItem = itemStack.getItem();
+        
+        for (ItemStack item : itemStacks) {
+            if (item.getItem() == equippedItem) {
+                // don't reduce stack in creative mode
+                if (!player.capabilities.isCreativeMode) {
+                    itemStack.stackSize--;
+                }
+
+                // required because the stack isn't reduced in onItemRightClick()
+                if (itemStack.stackSize <= 0) {
+                    player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+                }
+
+                return item.getItem();
             }
         }
         

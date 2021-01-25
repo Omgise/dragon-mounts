@@ -15,6 +15,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import info.ata4.minecraft.dragon.DragonMounts;
 import info.ata4.minecraft.dragon.client.model.anim.DragonAnimator;
 import info.ata4.minecraft.dragon.server.entity.ai.DragonBodyHelper;
+import info.ata4.minecraft.dragon.server.entity.ai.EntityAITemptOreDictionary;
 import info.ata4.minecraft.dragon.server.entity.ai.air.EntityAICatchOwnerAir;
 import info.ata4.minecraft.dragon.server.entity.ai.air.EntityAILand;
 import info.ata4.minecraft.dragon.server.entity.ai.air.EntityAIRideAir;
@@ -70,6 +71,8 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -90,7 +93,8 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public static final float BASE_WIDTH = 4;
     public static final float BASE_HEIGHT = 3f;
     public static final int HOME_RADIUS = 256;
-    public static final Item FAVORITE_FOOD = Items.fish;
+    public static final String FAVORITE_FOOD_OD_TAG = DragonMounts.instance.getConfig().getDragonFavoriteFoodTag();
+    public static final String ALL_FOOD_OD_TAG = DragonMounts.instance.getConfig().getDragonAllFoodTag();
     
     // data value IDs
     private static final int INDEX_SADDLED = 20;
@@ -135,7 +139,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         tasks.addTask(2, new EntityAISwimming(this)); // mutex 4
         tasks.addTask(3, aiSit); // mutex 4+1
         tasks.addTask(4, new EntityAIDragonMate(this, 0.6)); // mutex 2+1
-        tasks.addTask(5, new EntityAITempt(this, 0.75, FAVORITE_FOOD, false)); // mutex 2+1
+        tasks.addTask(5, new EntityAITemptOreDictionary(this, 0.75, FAVORITE_FOOD_OD_TAG, false)); // mutex 2+1
         tasks.addTask(6, new EntityAIAttackOnCollide(this, 1, true)); // mutex 2+1
         tasks.addTask(7, new EntityAIFollowParent(this, 0.8)); // mutex 2+1
         tasks.addTask(8, new EntityAIFollowOwner(this, 1, 12, 128)); // mutex 2+1
@@ -433,8 +437,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             
             // eat only if hurt
             if (getHealthRelative() < 1) {
-                food = (ItemFood) ItemUtils.consumeEquipped(player, FAVORITE_FOOD,
-                        Items.porkchop, Items.beef, Items.chicken);
+                food = (ItemFood) ItemUtils.consumeEquipped(player, OreDictionary.getOres(ALL_FOOD_OD_TAG));
             }
             
             // heal only if the food was actually consumed
@@ -465,7 +468,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
                         isJumping = false;
                         setPathToEntity(null);
                     }
-                } else if (getReproductionHelper().canReproduce() && ItemUtils.consumeEquipped(player, FAVORITE_FOOD)) {
+                } else if (getReproductionHelper().canReproduce() && ItemUtils.consumeEquipped(player, OreDictionary.getOres(FAVORITE_FOOD_OD_TAG)) != null) {
                     // activate love mode with favorite food if it hasn't reproduced yet
                     if (isClient()) {
                         getParticleHelper().spawnBodyParticles("heart");
@@ -481,7 +484,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             }
         } else {
             if (isServer()) {
-                if (ItemUtils.consumeEquipped(player, FAVORITE_FOOD)) {
+                if (ItemUtils.consumeEquipped(player, OreDictionary.getOres(FAVORITE_FOOD_OD_TAG)) != null) {
                     // tame dragon with favorite food and a random chance
                     tamedFor(player, rand.nextInt(3) == 0);
                 }
