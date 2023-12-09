@@ -1,11 +1,21 @@
-[
 {
-  "modid" : "DragonMounts",
-  "name" : "Dragon Mounts",
-  "description": "A mod that allows you to breed dragon eggs and foster them to ridable dragons.",
-  "version": "${version}",
-  "url" : "http://www.minecraftforum.net/topic/827863-",
-  "authorList": ["Barracuda"],
-  "logoFile" : "assets/dragonmounts/textures/gui/dm_banner_s.png"
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "Hatch dragon eggs and foster them into ridable dragons.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://github.com/jss2a98aj/dragon-mounts",
+		"updateUrl": "",
+		"authorList": ["Barracuda", "jss2a98aj"],
+		"credits": "",
+		"logoFile": "assets/dragonmounts/textures/gui/dm_banner_s.png",
+		"screenshots": [],
+		"parent": "",
+		"requiredMods": [],
+		"dependencies": [],
+		"dependants": [],
+		"useDependencyInformation": true
+	}]
 }
-]

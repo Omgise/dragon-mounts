@@ -25,7 +25,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * Main control class for Forge.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 @Mod(
@@ -35,32 +35,32 @@ import net.minecraftforge.oredict.OreDictionary;
     useMetadata = true
 )
 public class DragonMounts {
-    
-    public static final String NAME = "Dragon Mounts";
-    public static final String ID = "DragonMounts";
+
+    public static final String NAME = Tags.MODNAME;
+    public static final String ID = Tags.MODID;
     public static final String AID = ID.toLowerCase();
-    public static final String VERSION = "@VERSION@";
-    
+    public static final String VERSION = Tags.VERSION;
+
     @SidedProxy(
         serverSide = "info.ata4.minecraft.dragon.server.ServerProxy",
         clientSide = "info.ata4.minecraft.dragon.client.ClientProxy"
     )
     public static ServerProxy proxy;
-    
+
     @Instance(ID)
     public static DragonMounts instance;
-    
+
     private ModMetadata metadata;
-    
+
     public ModMetadata getMetadata() {
         return metadata;
     }
-    
+
     @EventHandler
     public void onPreInit(FMLPreInitializationEvent evt) {
         DragonMountsConfig.LoadDragonMountsConfig(new Configuration(evt.getSuggestedConfigurationFile()));
         metadata = evt.getModMetadata();
-        
+
         if(DragonMountsConfig.registerMeatToOreDictionary) {
         	OreDictionary.registerOre("listAllmeatraw", Items.beef);
         	OreDictionary.registerOre("listAllmeatraw", Items.chicken);
@@ -73,12 +73,12 @@ public class DragonMounts {
     public void onInit(FMLInitializationEvent evt) {
         proxy.onInit(evt);
     }
-    
+
     @EventHandler
     public void onServerStarted(FMLServerStartedEvent evt) {
         proxy.onServerStarted(evt);
     }
-    
+
     @EventHandler
     public void onServerStopped(FMLServerStoppedEvent evt) {
         proxy.onServerStopped(evt);
