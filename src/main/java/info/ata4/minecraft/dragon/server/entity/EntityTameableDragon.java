@@ -87,13 +87,12 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     // base attributes
     public static final double BASE_SPEED_GROUND = 0.3;
     public static final double BASE_SPEED_AIR = 1.5;
-    public static final double BASE_DAMAGE = 8;
-    public static final double BASE_HEALTH = 60;
+    public static final double BASE_DAMAGE = DragonMountsConfig.baseDamage;
+    public static final double BASE_HEALTH = DragonMountsConfig.baseHealth;
     public static final float BASE_WIDTH = 4;
     public static final float BASE_HEIGHT = 3f;
     public static final int HOME_RADIUS = 256;
     public static final String FAVORITE_FOOD_OD_TAG = DragonMountsConfig.dragonFavoriteFoodTag;
-    public static final String ALL_FOOD_OD_TAG = DragonMountsConfig.dragonAllFoodTag;
 
     // data value IDs
     private static final int INDEX_SADDLED = 20;
@@ -176,7 +175,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             addHelper(new DragonDebug(this));
         }
 
-        // don't use this on server side or you're asking for trouble!
+        // don't use this on server side, or you're asking for trouble!
         if (isClient()) {
             animator = new DragonAnimator(this);
         }
@@ -436,12 +435,12 @@ public class EntityTameableDragon extends EntityFlyingTameable {
 
             // eat only if hurt
             if (getHealthRelative() < 1) {
-                food = (ItemFood) ItemUtils.consumeEquipped(player, OreDictionary.getOres(ALL_FOOD_OD_TAG));
+                food = (ItemFood) ItemUtils.consumeEquipped(player, OreDictionary.getOres(DragonMountsConfig.dragonAllFoodTag));
             }
 
             // heal only if the food was actually consumed
             if (food != null) {
-                heal(food.func_150905_g(playerItem));
+                heal(food.func_150905_g(playerItem) * DragonMountsConfig.healthFromFoodMultiplier);
                 float volume = getSoundVolume() * 0.7f;
                 float pitch = getSoundPitch();
                 worldObj.playSoundAtEntity(this, "random.eat", volume, pitch);
@@ -660,15 +659,18 @@ public class EntityTameableDragon extends EntityFlyingTameable {
      * Called when the entity is attacked.
      */
     @Override
-    public boolean attackEntityFrom(DamageSource src, float par2) {
-        if (isInvulnerableTo(src)) {
+    public boolean attackEntityFrom(DamageSource source, float amount) {
+        float reducedAmount = amount - DragonMountsConfig.flatResistance;
+        reducedAmount *= DragonMountsConfig.incomingDamageMultiplier;
+
+        if (reducedAmount <= 0f || isInvulnerableTo(source)) {
             return false;
         }
 
         // don't just sit there!
         aiSit.setSitting(false);
 
-        return super.attackEntityFrom(src, par2);
+        return super.attackEntityFrom(source, reducedAmount);
     }
 
     /**
@@ -798,7 +800,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             double py = posY + getMountedYOffset() + riddenByEntity.getYOffset();
             double pz = posZ;
 
-            // dragon position is the middle of the model and the saddle is on
+            // dragon position is the middle of the model and a saddle is on
             // the shoulders, so move player forwards on Z axis relative to the
             // dragon's rotation to fix that
             Vec3 pos = Vec3.createVectorHelper(0, 0, 0.8 * getScale());
