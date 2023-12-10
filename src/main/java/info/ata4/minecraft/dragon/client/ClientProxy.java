@@ -12,7 +12,6 @@ package info.ata4.minecraft.dragon.client;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import info.ata4.minecraft.dragon.DragonMounts;
 import info.ata4.minecraft.dragon.DragonMountsConfig;
 import info.ata4.minecraft.dragon.client.gui.GuiDragonDebug;
 import info.ata4.minecraft.dragon.client.handler.DragonControl;
@@ -28,18 +27,20 @@ import net.minecraftforge.common.MinecraftForge;
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class ClientProxy extends ServerProxy {
-    
+
     @Override
     public void onInit(FMLInitializationEvent evt) {
         super.onInit(evt);
-        
+
         RenderingRegistry.registerEntityRenderingHandler(EntityTameableDragon.class, new DragonRenderer());
 
         FMLCommonHandler.instance().bus().register(new DragonEntityWatcher());
         FMLCommonHandler.instance().bus().register(new DragonControl(getNetwork()));
-        
-        MinecraftForge.EVENT_BUS.register(new DragonSplash());
-        
+
+        if (DragonMountsConfig.editSplashes) {
+            MinecraftForge.EVENT_BUS.register(new DragonSplash());
+        }
+
         if (DragonMountsConfig.debug) {
             MinecraftForge.EVENT_BUS.register(new GuiDragonDebug());
         }
