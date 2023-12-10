@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Network handler for dragon control messages.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 @Sharable
@@ -36,14 +36,13 @@ public class DragonControlMessageHandler implements IMessageHandler<DragonContro
             L.warn("Recieved unexpected control message from server!");
             return null;
         }
-        
+
         EntityPlayerMP player = ctx.getServerHandler().playerEntity;
-        
-        if (player.ridingEntity instanceof EntityTameableDragon) {
-            EntityTameableDragon dragon = (EntityTameableDragon) player.ridingEntity;
+
+        if (player.ridingEntity instanceof EntityTameableDragon dragon) {
             dragon.setControlFlags(message.getFlags());
         }
-        
+
         // receive only
         return null;
     }

@@ -13,19 +13,19 @@ import info.ata4.minecraft.dragon.DragonMountsConfig;
 
 /**
  * Enum for dragon life stages. Used as aliases for the age value of dragons.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public enum DragonLifeStage {
-    
+
     EGG(-DragonMountsConfig.eggToHatchlingTime),
     HATCHLING(-DragonMountsConfig.hatchlingToJuvenileTime),
     JUVENILE(-DragonMountsConfig.juvenileToAdultTime),
     ADULT(0);
-    
+
     public final int ageLimit;
 
-    private DragonLifeStage(int ageLimit) {
+    DragonLifeStage(int ageLimit) {
         this.ageLimit = ageLimit;
     }
 

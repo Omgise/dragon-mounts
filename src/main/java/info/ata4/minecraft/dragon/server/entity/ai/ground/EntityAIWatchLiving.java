@@ -42,21 +42,19 @@ public class EntityAIWatchLiving extends EntityAIBase {
         if (dragon.getRNG().nextFloat() >= watchChance) {
             return false;
         }
-        
+
         watchedEntity = null;
-        
-        if (watchedEntity == null) {
-            AxisAlignedBB aabb = dragon.boundingBox.expand(maxDist, dragon.height, maxDist);
-            Class clazz = EntityLiving.class;
-            watchedEntity = dragon.worldObj.findNearestEntityWithinAABB(clazz, aabb, dragon);
-        }
+
+        AxisAlignedBB aabb = dragon.boundingBox.expand(maxDist, dragon.height, maxDist);
+        Class clazz = EntityLiving.class;
+        watchedEntity = dragon.worldObj.findNearestEntityWithinAABB(clazz, aabb, dragon);
 
         if (watchedEntity != null) {
             // don't try to look at the rider when being ridden
             if (watchedEntity == dragon.getRidingPlayer()) {
                 watchedEntity = null;
             }
-            
+
             // watch the owner a little longer
             if (watchedEntity == dragon.getOwner()) {
                 watchTicks *= 3;

@@ -28,22 +28,22 @@ public abstract class EntityAIRide extends EntityAIBase {
         this.dragon = dragon;
         setMutexBits(0xffffffff);
     }
-    
+
     protected boolean isFlyUp() {
         return getControlFlag(0);
     }
-    
+
     protected boolean isFlyDown() {
         return getControlFlag(1);
     }
-    
+
     private boolean getControlFlag(int index) {
         BitSet controlFlags = dragon.getControlFlags();
-        return controlFlags == null ? false : controlFlags.get(index);
+        return controlFlags != null && controlFlags.get(index);
     }
-    
+
     @Override
-    public boolean shouldExecute() {   
+    public boolean shouldExecute() {
         rider = dragon.getRidingPlayer();
         return rider != null;
     }

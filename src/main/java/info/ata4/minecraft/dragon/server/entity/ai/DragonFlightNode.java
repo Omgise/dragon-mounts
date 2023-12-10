@@ -19,33 +19,33 @@ import net.minecraft.world.World;
 
 /**
  * An iterative A* shortest path searching using randomized paths
- * 
+ *
  * @author KotBehemoth
  */
 public class DragonFlightNode {
 
     public static final int NUM_CHILDREN = 5;
-    public static final double MIN_SAMPLE_DISTANCE = 3; // Keeps samples some distance away from each other. Otherwise dragon could fly in circle around itself
-    
+    public static final double MIN_SAMPLE_DISTANCE = 3; // Keeps samples some distance away from each other, otherwise a dragon could fly in circles around itself
+
     private Random rand = new Random();
     public DragonFlightNode[] children = new DragonFlightNode[NUM_CHILDREN]; // Monte Carlo estimates
     public DragonFlightNode parent;
-    
+
     public int myIdx;
-    public boolean hasAlternatives;     // count of non null children > 1, will be later used by backtracking
-    
+    public boolean hasAlternatives;     // count of non-null children > 1, will be later used by backtracking
+
     public double pointX;
     public double pointY;
     public double pointZ;
-    
+
     public double endPointX;            // became useless now
     public double endPointY;
     public double endPointZ;
-    
+
     public double sourceDistance;       // Distance to root node (start point)
     public double targetDistance;       // Distance to destination
     public double blockDistance;        // Distance to occlusion between current node and destination
-    
+
     int idxToFastestWay;                // Which branch leads to destination
     public double fastestSubDistance;   // Estimation of how much far the dragon should travel at minimum
 
@@ -66,7 +66,7 @@ public class DragonFlightNode {
         this.endPointZ = source.zCoord;
 
         this.hasAlternatives = false;
-        
+
         collapseAll();
     }
 
@@ -89,7 +89,7 @@ public class DragonFlightNode {
         this.endPointZ = source.zCoord;
 
         this.hasAlternatives = false;
-        
+
         collapseAll();
     }
 
@@ -128,11 +128,7 @@ public class DragonFlightNode {
         this.fastestSubDistance = fastestSumDistance - sourceDistance;
         this.idxToFastestWay = idxToFastestWay;
 
-        if (countNonNull > 1) {
-            hasAlternatives = true;
-        } else {
-            hasAlternatives = false;
-        }
+        hasAlternatives = countNonNull > 1;
 
         if (parent != null) {
             parent.updateSubCandidates(); // update parent
@@ -214,7 +210,7 @@ public class DragonFlightNode {
 
     // Collision detection like rayTrace, but tests the whole bounding box of dragon instead of a ray
     // NOTE: Doesn't work perfect. Can sometimes bring problems with landing
-    //         
+    //
     private double simulateTunnelMovement(EntityCreature creature, Vec3 target) {
         // simulates the dragon movement inside a straight virtual tunnel as if there would be repeated "moveEntity" calls
         // It is better than ray collision, so the dragon keeps distance to surrounding blockers.
@@ -270,7 +266,7 @@ public class DragonFlightNode {
         proxyBox.maxY += 0.5;    // ceiling problem, where the dragon would take damage
         proxyBox.minY -= 1.5;    // prevent early landing
 
-        // test for initial collisions, reject simulation if there already collisions and the simulation rules towards them
+        // test for initial collisions, reject simulation if there are already collisions and the simulation rules towards them
         boolean tunnelCollided = false;
         List collidersInside;
         int i, j;
@@ -356,7 +352,7 @@ public class DragonFlightNode {
             }
         }
 
-        // try to move inner part a little bit more, so dragon would be able to land 
+        // try to move inner part a little bit more, so dragon would be able to land
         if (tunnelCollided) {
             for (j = 0; j < collidersInside.size(); j++) {
                 stepY = ((AxisAlignedBB) collidersInside.get(j)).calculateYOffset(proxyInnerBox, stepY);
@@ -378,7 +374,7 @@ public class DragonFlightNode {
 
         // tell if could move fully
         if (movedLen + 0.5 > deltaLen) {
-            return 999999999;    // say, that no collision occured
+            return 999999999;    // say, that no collision occurred
         }
         return movedLen;
     }
@@ -406,7 +402,7 @@ public class DragonFlightNode {
         double switchCoeff = 86.79; //104.91; // simulated anealing temperature = exp(-switchCoeff * sampleIndex)
         // 86,79 for 3% probability at 5th node expansion
         if (countNodes > 1) {
-            switchCoeff /= (double) (countNodes - 1);
+            switchCoeff /= countNodes - 1;
         }
 
         // clear children
@@ -440,9 +436,9 @@ public class DragonFlightNode {
                     Vec3 direction; // = Vec3.createVector( 0, 0, 0 );
                     double ancDirX, ancDirY, ancDirZ;
                     double switchProb;
-                    boolean isInvalid = false;
+                    boolean isInvalid;
                     DragonFlightNode ancNode;
-                    
+
                     do {
                         isInvalid = false;
                         direction = Vec3.createVectorHelper(2 * rand.nextDouble() - 1, 2 * rand.nextDouble() - 1, 2 * rand.nextDouble() - 1);

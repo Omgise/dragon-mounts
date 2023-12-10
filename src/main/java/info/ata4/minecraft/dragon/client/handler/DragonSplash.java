@@ -9,14 +9,10 @@
  */
 package info.ata4.minecraft.dragon.client.handler;
 
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import info.ata4.minecraft.dragon.DragonMounts;
 import info.ata4.minecraft.dragon.util.reflection.PrivateFields;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.util.ResourceLocation;
@@ -25,16 +21,20 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.InputStream;
+import java.util.List;
+import java.util.Random;
+
 /**
  * Replaces the splash text with a random custom one sometimes.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonSplash {
-    
+
     private static final Logger L = LogManager.getLogger();
     private static final ResourceLocation RESOURCE_SPLASHES = new ResourceLocation(DragonMounts.AID, "splashes.txt");
-    
+
     private final Random rand = new Random();
     private List<String> splashLines;
 
@@ -51,7 +51,7 @@ public class DragonSplash {
             L.warn("Can't load splashes", t);
         }
     }
-    
+
     @SubscribeEvent
     public void onOpenGui(GuiOpenEvent evt) {
         if (evt.gui instanceof GuiMainMenu) {
@@ -70,11 +70,11 @@ public class DragonSplash {
             }
         }
     }
-    
+
     private String getSplashText(GuiMainMenu menu) {
         return ReflectionHelper.getPrivateValue(GuiMainMenu.class, menu, PrivateFields.GUIMAINMENU_SPLASHTEXT);
     }
-    
+
     private void setSplashText(GuiMainMenu menu, String splash) {
         ReflectionHelper.setPrivateValue(GuiMainMenu.class, menu, splash, PrivateFields.GUIMAINMENU_SPLASHTEXT);
     }

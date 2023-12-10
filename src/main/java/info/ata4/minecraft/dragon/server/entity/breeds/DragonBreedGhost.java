@@ -27,25 +27,25 @@ public class DragonBreedGhost extends DragonBreed {
 
     public DragonBreedGhost() {
         super("ghost", "undead", 0xbebebe);
-        
+
         addImmunity(DamageSource.wither);
-        
+
         addHabitatBlock(Blocks.web);
     }
-    
+
     @Override
     public void onEnable(EntityTameableDragon dragon) {
         dragon.tasks.addTask(2, new EntityAIRestrictSun(dragon));
     }
-    
+
     @Override
     public void onDisable(EntityTameableDragon dragon) {
-        List<EntityAITaskEntry> taskEntries = (List<EntityAITaskEntry>) dragon.tasks.taskEntries;
+        List<EntityAITaskEntry> taskEntries = dragon.tasks.taskEntries;
         Iterator<EntityAITaskEntry> iterator = taskEntries.iterator();
 
         while (iterator.hasNext()) {
             EntityAITaskEntry taskEntry = iterator.next();
-            
+
             if (taskEntry.action instanceof EntityAIRestrictSun) {
                 taskEntry.action.resetTask();
                 iterator.remove();
@@ -53,7 +53,7 @@ public class DragonBreedGhost extends DragonBreed {
             }
         }
     }
-    
+
 //    @Override
 //    public void onUpdate(EntityTameableDragon dragon) {
 //        // start burning when in contact with sunlight
@@ -76,22 +76,18 @@ public class DragonBreedGhost extends DragonBreed {
             // woah dude, too high!
             return false;
         }
-        
+
         int bx = MathHelper.floor_double(dragon.posX);
         int by = MathHelper.floor_double(dragon.posY);
         int bz = MathHelper.floor_double(dragon.posZ);
-        
+
         if (dragon.worldObj.canBlockSeeTheSky(bx, by, bz)) {
             // sun is shining!
             return false;
         }
-        
-        if (dragon.worldObj.getBlockLightValue(bx, by, bz) > 4) {
-            // too bright!
-            return false;
-        }
 
-        return true;
+        // too bright!
+        return dragon.worldObj.getBlockLightValue(bx, by, bz) <= 4;
     }
 
     @Override

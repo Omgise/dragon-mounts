@@ -9,6 +9,7 @@
  */
 package info.ata4.minecraft.dragon.server.cmd;
 
+import com.github.bsideup.jabel.Desugar;
 import info.ata4.minecraft.dragon.server.entity.EntityTameableDragon;
 import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreed;
 import info.ata4.minecraft.dragon.server.entity.helper.DragonBreedRegistry;
@@ -36,14 +37,14 @@ public class CommandDragon extends CommandBase {
     public String getCommandName() {
         return "dragon";
     }
-    
+
     @Override
     public String getCommandUsage(ICommandSender sender) {
         String stages = StringUtils.join(DragonLifeStage.values(), '|').toLowerCase();
         String breeds = StringUtils.join(DragonBreedRegistry.getInstance().getBreeds(), '|');
         return String.format("/dragon <stage <%s>|breed <%s> [global]", stages, breeds);
     }
-    
+
     /**
      * Return the required permission level for this command.
      */
@@ -57,55 +58,51 @@ public class CommandDragon extends CommandBase {
         if (params.length < 1 || params[0].isEmpty()) {
             throw new WrongUsageException(getCommandUsage(sender));
         }
-        
+
         // last parameter, optional
         boolean global = params[params.length - 1].equalsIgnoreCase("global");
 
         String command = params[0];
-        if (command.equals("stage")) {
-            if (params.length < 2) {
-                throw new WrongUsageException(getCommandUsage(sender));
+        switch (command) {
+            case "stage" -> {
+                if (params.length < 2) {
+                    throw new WrongUsageException(getCommandUsage(sender));
+                }
+                DragonLifeStage lifeStage = null;
+                String parameter = params[1].toUpperCase();
+                if (!parameter.equals("ITEM")) {
+                    try {
+                        lifeStage = DragonLifeStage.valueOf(parameter);
+                    } catch (IllegalArgumentException ex) {
+                        throw new SyntaxErrorException();
+                    }
+                }
+                EntityModifier modifier = new LifeStageModifier(lifeStage);
+                appyModifier(sender, modifier, global);
             }
-
-            DragonLifeStage lifeStage = null;
-            String parameter = params[1].toUpperCase();
-            
-            if (!parameter.equals("ITEM")) {
-                try {
-                    lifeStage = DragonLifeStage.valueOf(parameter);
-                } catch (IllegalArgumentException ex) {
+            case "breed" -> {
+                if (params.length < 2) {
+                    throw new WrongUsageException(getCommandUsage(sender));
+                }
+                String breedName = params[1].toLowerCase();
+                DragonBreed breed = DragonBreedRegistry.getInstance().getBreedByName(breedName);
+                if (breed == null) {
                     throw new SyntaxErrorException();
                 }
+                appyModifier(sender, new BreedModifier(breed), global);
             }
-
-            EntityModifier modifier = new LifeStageModifier(lifeStage);
-            appyModifier(sender, modifier, global);
-        } else if (command.equals("breed")) {
-            if (params.length < 2) {
-                throw new WrongUsageException(getCommandUsage(sender));
+            case "tame" -> {
+                if (sender instanceof EntityPlayerMP player) {
+                    appyModifier(sender, new TameModifier(player), global);
+                } else {
+                    // console can't tame dragons
+                    throw new CommandException("commands.dragon.canttame");
+                }
             }
-            
-            String breedName = params[1].toLowerCase();
-            DragonBreed breed = DragonBreedRegistry.getInstance().getBreedByName(breedName);
-            
-            if (breed == null) {
-                throw new SyntaxErrorException();
-            }
-            
-            appyModifier(sender, new BreedModifier(breed), global);
-        } else if (command.equals("tame")) {
-            if (sender instanceof EntityPlayerMP) {
-                EntityPlayerMP player = (EntityPlayerMP) sender;
-                appyModifier(sender, new TameModifier(player), global);
-            } else {
-                // console can't tame dragons
-                throw new CommandException("commands.dragon.canttame");
-            }
-        } else {
-            throw new WrongUsageException(getCommandUsage(sender));
+            default -> throw new WrongUsageException(getCommandUsage(sender));
         }
     }
-    
+
     private void appyModifier(ICommandSender sender, EntityModifier modifier, boolean global) {
         if (!global && sender instanceof EntityPlayerMP) {
             EntityPlayerMP player = getCommandSenderAsPlayer(sender);
@@ -114,14 +111,13 @@ public class CommandDragon extends CommandBase {
                     player.posX - 1, player.posY - 1, player.posZ - 1,
                     player.posX + 1, player.posY + 1, player.posZ + 1);
             aabb = aabb.expand(range, range, range);
-            List<Entity> entities = player.worldObj.getEntitiesWithinAABB(EntityTameableDragon.class, aabb);
+            List<EntityTameableDragon> entities = player.worldObj.getEntitiesWithinAABB(EntityTameableDragon.class, aabb);
 
             Entity closestEntity = null;
             float minPlayerDist = Float.MAX_VALUE;
 
             // get closest dragon
-            for (int i = 0; i < entities.size(); i++) {
-                Entity entity = entities.get(i);
+            for (Entity entity : entities) {
                 float playerDist = entity.getDistanceToEntity(player);
                 if (entity.getDistanceToEntity(player) < minPlayerDist) {
                     closestEntity = entity;
@@ -140,9 +136,7 @@ public class CommandDragon extends CommandBase {
             for (WorldServer worldServer : server.worldServers) {
                 List<Entity> entities = worldServer.loadedEntityList;
 
-                for (int i = 0; i < entities.size(); i++) {
-                    Entity entity = entities.get(i);
-
+                for (Entity entity : entities) {
                     if (!(entity instanceof EntityTameableDragon)) {
                         continue;
                     }
@@ -152,20 +146,14 @@ public class CommandDragon extends CommandBase {
             }
         }
     }
-    
-    private interface EntityModifier {
-        public void modify(EntityTameableDragon dragon);
-    }
-    
-    private class LifeStageModifier implements EntityModifier {
 
-        private DragonLifeStage lifeStage;
-        
-        LifeStageModifier(DragonLifeStage lifeStage) {
-            this.lifeStage = lifeStage;
-        }
-        
-        @Override
+    private interface EntityModifier {
+        void modify(EntityTameableDragon dragon);
+    }
+
+    @Desugar
+    private record LifeStageModifier(DragonLifeStage lifeStage) implements EntityModifier {
+    @Override
         public void modify(EntityTameableDragon dragon) {
             if (lifeStage == null) {
                 dragon.getLifeStageHelper().transformToEgg();
@@ -174,32 +162,21 @@ public class CommandDragon extends CommandBase {
             }
         }
     }
-    
-    private class BreedModifier implements EntityModifier {
 
-        private DragonBreed breed;
-        
-        BreedModifier(DragonBreed breed) {
-            this.breed = breed;
-        }
-        
-        @Override
+    @Desugar
+    private record BreedModifier(DragonBreed breed) implements EntityModifier {
+    @Override
         public void modify(EntityTameableDragon dragon) {
             dragon.setBreed(breed);
         }
     }
-    
-    private class TameModifier implements EntityModifier {
-        
-        private EntityPlayerMP player;
-        
-        TameModifier(EntityPlayerMP player) {
-            this.player = player;
-        }
 
-        @Override
+    @Desugar
+    private record TameModifier(EntityPlayerMP player) implements EntityModifier {
+    @Override
         public void modify(EntityTameableDragon dragon) {
             dragon.tamedFor(player, true);
         }
     }
+
 }

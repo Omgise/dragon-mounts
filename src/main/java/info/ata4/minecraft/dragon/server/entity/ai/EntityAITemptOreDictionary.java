@@ -3,7 +3,6 @@ package info.ata4.minecraft.dragon.server.entity.ai;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -84,8 +83,8 @@ public class EntityAITemptOreDictionary extends EntityAIBase {
                 this.targetZ = this.temptingPlayer.posZ;
             }
 
-            this.targetPitch = (double)this.temptingPlayer.rotationPitch;
-            this.targetYaw = (double)this.temptingPlayer.rotationYaw;
+            this.targetPitch = this.temptingPlayer.rotationPitch;
+            this.targetYaw = this.temptingPlayer.rotationYaw;
         }
 
         return this.shouldExecute();

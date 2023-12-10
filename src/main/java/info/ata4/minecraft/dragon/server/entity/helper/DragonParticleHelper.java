@@ -16,33 +16,38 @@ import info.ata4.minecraft.dragon.server.entity.EntityTameableDragon;
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonParticleHelper extends DragonHelper {
-    
+
     public DragonParticleHelper(EntityTameableDragon dragon) {
         super(dragon);
     }
-    
+
     public void spawnBodyParticle(String effect) {
         double ox, oy, oz;
         float s = dragon.getScale() * 1.2f;
 
-        if (effect.equals("explode")) {
-            ox = rand.nextGaussian() * s;
-            oy = rand.nextGaussian() * s;
-            oz = rand.nextGaussian() * s;
-        } else if (effect.equals("cloud")) {
-            ox = (rand.nextDouble() - 0.5) * 0.1;
-            oy = rand.nextDouble() * 0.2;
-            oz = (rand.nextDouble() - 0.5) * 0.1;
-        } else if (effect.equals("reddust")) {
-            ox = 0.8;
-            oy = 0;
-            oz = 0.8;
-        } else {
-            ox = 0;
-            oy = 0;
-            oz = 0;
+        switch (effect) {
+            case "explode" -> {
+                ox = rand.nextGaussian() * s;
+                oy = rand.nextGaussian() * s;
+                oz = rand.nextGaussian() * s;
+            }
+            case "cloud" -> {
+                ox = (rand.nextDouble() - 0.5) * 0.1;
+                oy = rand.nextDouble() * 0.2;
+                oz = (rand.nextDouble() - 0.5) * 0.1;
+            }
+            case "reddust" -> {
+                ox = 0.8;
+                oy = 0;
+                oz = 0.8;
+            }
+            default -> {
+                ox = 0;
+                oy = 0;
+                oz = 0;
+            }
         }
-        
+
         // use generic random box spawning
         double x = dragon.posX + (rand.nextDouble() - 0.5) * dragon.width * s;
         double y = dragon.posY + (rand.nextDouble() - 0.5) * dragon.height * s;
@@ -50,14 +55,14 @@ public class DragonParticleHelper extends DragonHelper {
 
         dragon.worldObj.spawnParticle(effect, x, y, z, ox, oy, oz);
     }
-    
+
     public void spawnBodyParticles(String effect, int baseAmount) {
         int amount = (int) (baseAmount * dragon.getScale());
         for (int i = 0; i < amount; i++) {
             spawnBodyParticle(effect);
         }
     }
-    
+
     public void spawnBodyParticles(String effect) {
         spawnBodyParticles(effect, 32);
     }

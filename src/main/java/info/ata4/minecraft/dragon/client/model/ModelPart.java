@@ -19,30 +19,30 @@ import static org.lwjgl.opengl.GL11.*;
 
 /**
  * Extended model renderer with some helpful extra methods.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class ModelPart extends ModelRenderer {
-    
+
     public static boolean renderAxes;
-    
+
     public float renderScaleX = 1;
     public float renderScaleY = 1;
     public float renderScaleZ = 1;
-    
+
     public float preRotateAngleX;
     public float preRotateAngleY;
     public float preRotateAngleZ;
-    
+
     private ModelBase base;
     private boolean compiled;
     private int displayList;
-    
+
     public ModelPart(ModelBase base, String name) {
         super(base, name);
         this.base = base;
     }
-    
+
     public ModelPart(ModelBase base) {
         this(base, null);
     }
@@ -57,79 +57,79 @@ public class ModelPart extends ModelRenderer {
         part.mirror = mirror;
         part.addBox(name, xOfs, yOfs, zOfs, width, length, height);
         addChild(part);
-        
+
         return part;
     }
-    
+
     public ModelPart setAngles(float x, float y, float z) {
         rotateAngleX = x;
         rotateAngleY = y;
         rotateAngleZ = z;
-        
+
         return this;
     }
-    
+
     public ModelPart setRenderScale(float scaleX, float scaleY, float scaleZ) {
         this.renderScaleX = scaleX;
         this.renderScaleY = scaleY;
         this.renderScaleZ = scaleZ;
-        
+
         return this;
     }
-    
+
     public ModelPart setRenderScale(float scale) {
         return setRenderScale(scale, scale, scale);
     }
-    
+
     private void compileDisplayList(float scale) {
         displayList = GLAllocation.generateDisplayLists(1);
         glNewList(displayList, GL_COMPILE);
-        for (Object obj : cubeList) {
-            ((ModelBox) obj).render(Tessellator.instance, scale);
+        for (ModelBox obj : cubeList) {
+            obj.render(Tessellator.instance, scale);
         }
         glEndList();
         compiled = true;
     }
-    
+
     @Override
     public void render(float scale) {
         renderWithRotation(scale);
     }
-    
+
     @Override
     public void renderWithRotation(float scale) {
         // skip if hidden
         if (isHidden || !showModel) {
             return;
         }
-        
+
         // compile if required
         if (!compiled) {
             compileDisplayList(scale);
         }
-        
+
         glPushMatrix();
-        
+
         postRender(scale);
-        
+
         // render axes
-        if (renderAxes) {
+        //if (renderAxes) {
 //            GLUtils.renderAxes(scale * 8);
-        }
-        
+        //}
+
         // call display list
         glCallList(displayList);
-        
+
         // render child models
         if (childModels != null) {
-            for (Object obj : childModels) {
-                ((ModelRenderer) obj).render(scale);
+            for (ModelRenderer obj : childModels) {
+                obj.render(scale);
             }
         }
-        
+
         glPopMatrix();
     }
-    
+
     @Override
     public void postRender(float scale) {
         // skip if hidden
@@ -139,7 +139,7 @@ public class ModelPart extends ModelRenderer {
 
         // translate
         glTranslatef(rotationPointX * scale, rotationPointY * scale, rotationPointZ * scale);
-        
+
         // rotate
         if (preRotateAngleZ != 0) {
             glRotatef(MathX.toDegrees(preRotateAngleZ), 0, 0, 1);
@@ -150,7 +150,7 @@ public class ModelPart extends ModelRenderer {
         if (preRotateAngleX != 0) {
             glRotatef(MathX.toDegrees(preRotateAngleX), 1, 0, 0);
         }
-        
+
         if (rotateAngleZ != 0) {
             glRotatef(MathX.toDegrees(rotateAngleZ), 0, 0, 1);
         }

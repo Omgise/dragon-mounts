@@ -55,7 +55,6 @@ import net.minecraft.entity.ai.EntityAIHurtByTarget;
 import net.minecraft.entity.ai.EntityAIOwnerHurtByTarget;
 import net.minecraft.entity.ai.EntityAIOwnerHurtTarget;
 import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.ai.EntityAITempt;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityChicken;
@@ -63,7 +62,6 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -79,13 +77,13 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Here be dragons.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class EntityTameableDragon extends EntityFlyingTameable {
-    
+
     private static final Logger L = LogManager.getLogger();
-    
+
     // base attributes
     public static final double BASE_SPEED_GROUND = 0.3;
     public static final double BASE_SPEED_AIR = 1.5;
@@ -96,28 +94,28 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public static final int HOME_RADIUS = 256;
     public static final String FAVORITE_FOOD_OD_TAG = DragonMountsConfig.dragonFavoriteFoodTag;
     public static final String ALL_FOOD_OD_TAG = DragonMountsConfig.dragonAllFoodTag;
-    
+
     // data value IDs
     private static final int INDEX_SADDLED = 20;
     private static final int INDEX_BREEDER = 21;
     private static final int INDEX_BREED = 22;
     private static final int INDEX_REPRO_COUNT = 23;
-    
+
     // data NBT IDs
     private static final String NBT_SADDLED = "Saddle";
 
     // server/client delegates
     private Map<Class, DragonHelper> helpers;
-    
+
     // client-only delegates
     private DragonAnimator animator;
-    
+
     // server-only flags
     private BitSet controlFlags;
 
     public EntityTameableDragon(World world) {
         super(world);
-        
+
         // override EntityBodyHelper field, which is private and has no setter
         // required to fixate body while sitting. also slows down rotation while standing.
         try {
@@ -125,13 +123,13 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         } catch (Exception ex) {
             L.warn("Can't override EntityBodyHelper", ex);
         }
-        
+
         // set base size
         setSize(BASE_WIDTH, BASE_HEIGHT);
-        
+
         // enables walking over blocks
         stepHeight = 1;
-        
+
         // mutex 1: movement
         // mutex 2: looking
         // mutex 4: special state
@@ -148,7 +146,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         tasks.addTask(9, new EntityAIWander(this, 1)); // mutex 1
         tasks.addTask(10, new EntityAIWatchIdle(this)); // mutex 2
         tasks.addTask(10, new EntityAIWatchLiving(this, 16, 0.05f)); // mutex 2
-        
+
         // mutex 1: waypointing
         // mutex 2: continuous waypointing
         airTasks.addTask(0, new EntityAIRideAir(this)); // mutex all
@@ -163,46 +161,46 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         targetTasks.addTask(4, new EntityAIHunt(this, EntityPig.class, 200, false)); // mutex 1
         targetTasks.addTask(4, new EntityAIHunt(this, EntityChicken.class, 200, false)); // mutex 1
     }
-    
+
     @Override
     protected void entityInit() {
         super.entityInit();
         dataWatcher.addObject(INDEX_SADDLED, (byte) 0);
-        
+
         addHelper(new DragonBreedHelper(this, INDEX_BREED));
         addHelper(new DragonLifeStageHelper(this));
         addHelper(new DragonReproductionHelper(this, INDEX_BREEDER, INDEX_REPRO_COUNT));
         addHelper(new DragonParticleHelper(this));
-        
+
         if (DragonMountsConfig.debug) {
             addHelper(new DragonDebug(this));
         }
-        
+
         // don't use this on server side or you're asking for trouble!
         if (isClient()) {
             animator = new DragonAnimator(this);
         }
     }
-    
+
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
-        
+
         getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
         setAttributes();
-        
+
         for (DragonHelper helper : helpers.values()) {
             helper.applyEntityAttributes();
         }
     }
-    
+
     private void setAttributes() {
         getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(BASE_SPEED_GROUND);
         getEntityAttribute(MOVE_SPEED_AIR).setBaseValue(BASE_SPEED_AIR);
         getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(BASE_HEALTH);
         getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(BASE_DAMAGE);
     }
-    
+
      /**
      * (abstract) Protected helper method to write subclass entity data to NBT.
      */
@@ -210,12 +208,12 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public void writeEntityToNBT(NBTTagCompound nbt) {
         super.writeEntityToNBT(nbt);
         nbt.setBoolean(NBT_SADDLED, isSaddled());
-        
+
         for (DragonHelper helper : helpers.values()) {
             helper.writeToNBT(nbt);
         }
     }
-    
+
     /**
      * (abstract) Protected helper method to read subclass entity data from NBT.
      */
@@ -223,22 +221,22 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public void readEntityFromNBT(NBTTagCompound nbt) {
         super.readEntityFromNBT(nbt);
         setSaddled(nbt.getBoolean(NBT_SADDLED));
-        
+
         for (DragonHelper helper : helpers.values()) {
             helper.readFromNBT(nbt);
         }
-        
+
         // override attributes loaded from NBT, they were set and handled
         // incorrectly in older versions
         setAttributes();
     }
-    
+
     @Override
     public void onLivingUpdate() {
         for (DragonHelper helper : helpers.values()) {
             helper.onLivingUpdate();
         }
-        
+
         if (isClient()) {
             if (!isEgg()) {
                 animator.setOnGround(!isFlying());
@@ -253,10 +251,10 @@ public class EntityTameableDragon extends EntityFlyingTameable {
                 }
             }
         }
-        
+
         super.onLivingUpdate();
     }
-    
+
     /**
      * Handles entity death timer, experience orb and particle creation
      */
@@ -265,28 +263,28 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         for (DragonHelper helper : helpers.values()) {
             helper.onDeathUpdate();
         }
-        
+
         // unmount any riding entity
         if (riddenByEntity != null) {
             riddenByEntity.mountEntity(null);
         }
-                
+
         // freeze at place
         motionX = motionY = motionZ = 0;
         rotationYaw = prevRotationYaw;
         rotationYawHead = prevRotationYawHead;
-        
+
         if (isEgg()) {
             setDead();
-        } else {            
+        } else {
             if (deathTime >= getMaxDeathTime()) {
                 setDead();
             }
         }
-        
+
         deathTime++;
     }
-    
+
     @Override
     public void setDead() {
         for (DragonHelper helper : helpers.values()) {
@@ -301,14 +299,14 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         if (hasCustomNameTag()) {
             return getCustomNameTag();
         }
-        
+
         // return default breed name otherwise
         String entName = EntityList.getEntityString(this);
         String breedName = getBreed().getName().toLowerCase();
         return StatCollector.translateToLocal("entity." + entName + "." + breedName + ".name");
     }
-    
-    
+
+
     /**
      * Returns the sound this mob makes while it's alive.
      */
@@ -332,7 +330,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             return getBreed().getHurtSound(this);
         }
     }
-    
+
     /**
      * Returns the sound this mob makes on death.
      */
@@ -344,7 +342,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             return getBreed().getDeathSound(this);
         }
     }
-    
+
     /**
      * Plays living's sound at its position
      */
@@ -354,7 +352,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         if (sound == null) {
             return;
         }
-        
+
         float v = getSoundVolume();
         float p = getSoundPitch();
 
@@ -366,15 +364,15 @@ public class EntityTameableDragon extends EntityFlyingTameable {
 
         playSound(sound, v, p);
     }
-    
+
     /**
      * Plays step sound at given x, y, z for the entity
      */
     @Override
     protected void func_145780_a(int x, int y, int z, Block block) {
-        if (isEgg() || inWater) {
+        /*if (isEgg() || inWater) {
             // no sounds for eggs or underwater action
-        } else if (isHatchling()) {
+        } else*/ if (isHatchling()) {
             // play default step sound for babies
             super.func_145780_a(x, y, z, block);
         } else {
@@ -382,7 +380,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             worldObj.playSoundAtEntity(this, DragonMounts.AID + ":mob.enderdragon.step", 0.5f, 1);
         }
     }
-    
+
     /**
      * Returns the volume for the sounds this mob makes.
      */
@@ -390,7 +388,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     protected float getSoundVolume() {
         return 2 - getScale();
     }
-    
+
     /**
      * Gets the pitch of living sounds in living entities.
      */
@@ -398,7 +396,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     protected float getSoundPitch() {
         return super.getSoundPitch() * (2 - getScale());
     }
-    
+
     /**
      * Get number of ticks, at least during which the living entity will be silent.
      */
@@ -406,7 +404,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public int getTalkInterval() {
         return 240;
     }
-    
+
     /**
      * Get this Entity's EnumCreatureAttribute
      */
@@ -414,33 +412,33 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public EnumCreatureAttribute getCreatureAttribute() {
         return getBreed().getCreatureAttribute();
     }
-    
+
     /**
      * Called when a player interacts with a mob. e.g. gets milk from a cow, gets into the saddle on a pig.
      */
     @Override
     public boolean interact(EntityPlayer player) {
         ItemStack playerItem = player.inventory.getCurrentItem();
-        
+
         // duplicate dragon with entity egg
         if (playerItem != null && playerItem.getItem() == Items.spawn_egg) {
             return super.interact(player);
         }
-        
+
         // don't interact with eggs!
         if (isEgg()) {
             return false;
         }
-        
+
         if (isTamed() || isChild()) {
             // heal dragon with food
             ItemFood food = null;
-            
+
             // eat only if hurt
             if (getHealthRelative() < 1) {
                 food = (ItemFood) ItemUtils.consumeEquipped(player, OreDictionary.getOres(ALL_FOOD_OD_TAG));
             }
-            
+
             // heal only if the food was actually consumed
             if (food != null) {
                 heal(food.func_150905_g(playerItem));
@@ -449,7 +447,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
                 worldObj.playSoundAtEntity(this, "random.eat", volume, pitch);
                 return true;
             }
-            
+
             //if (!isOwner(player)) {
             if (!func_152114_e(player)) {
                 if (isServer()) {
@@ -490,13 +488,13 @@ public class EntityTameableDragon extends EntityFlyingTameable {
                     tamedFor(player, rand.nextInt(3) == 0);
                 }
             }
-            
+
             return true;
         }
-        
+
         return false;
     }
-    
+
     public void tamedFor(EntityPlayer player, boolean successful) {
         if (successful) {
             setTamed(true);
@@ -511,7 +509,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             worldObj.setEntityState(this, (byte) 6);
         }
     }
-    
+
     @Override
     protected void updateAITasks() {
         // disable AI on eggs
@@ -519,7 +517,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             super.updateAITasks();
         }
     }
-    
+
     /**
      * Checks if the parameter is an item which this animal can be fed to breed it (wheat, carrots or seeds depending on
      * the animal type)
@@ -529,7 +527,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         // breeding items are handled in interact(), this is just for EntityAnimal.interact()
         return false;
     }
-    
+
     /**
      * Returns the height of the eyes. Used for looking at other entities.
      */
@@ -543,7 +541,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
 
         return eyeHeight;
     }
-    
+
     /**
      * Returns the Y offset from the entity's position for any entity riding this one.
      */
@@ -551,7 +549,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public double getMountedYOffset() {
         return (isSitting() ? 1.7f : 2.2f) * getScale();
     }
-    
+
     /**
      * Returns render size modifier
      */
@@ -559,7 +557,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public float getRenderSizeModifier() {
         return getScale();
     }
-    
+
     /**
      * Returns true if the newer Entity AI code should be run
      */
@@ -572,7 +570,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     protected boolean isGroundAIEnabled() {
         return super.isGroundAIEnabled() && !isEgg();
     }
-    
+
     /**
      * Returns true if this entity should push and be pushed by other entities when colliding.
      */
@@ -580,7 +578,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public boolean canBePushed() {
         return super.canBePushed() && isEgg();
     }
-    
+
     /**
      * Determines if an entity can be despawned, used on idle far away entities
      */
@@ -588,7 +586,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     protected boolean canDespawn() {
         return false;
     }
-    
+
     /**
      * returns true if this entity is by a ladder, false otherwise
      */
@@ -597,7 +595,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         // this better doesn't happen...
         return false;
     }
-    
+
     /**
      * Drop 0-2 items of this living's type. @param par1 - Whether this entity has recently been hit by a player. @param
      * par2 - Level of Looting used to kill this mob.
@@ -605,13 +603,13 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     @Override
     protected void dropFewItems(boolean par1, int par2) {
         super.dropFewItems(par1, par2);
-        
+
         // drop saddle if equipped
         if (isSaddled()) {
             dropItem(Items.saddle, 1);
         }
     }
-    
+
     @Override
     public boolean attackEntityAsMob(Entity victim) {
         float attackDamage = (float) getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
@@ -630,7 +628,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
                 double vy = 0.1;
                 double vz = Math.cos(Math.toRadians(rotationYaw)) * knockback * 0.5;
                 victim.addVelocity(vx, vy, vz);
-                
+
                 motionX *= 0.6;
                 motionZ *= 0.6;
             }
@@ -644,11 +642,11 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             if (victim instanceof EntityLivingBase) {
                 EnchantmentHelper.func_151384_a((EntityLivingBase) victim, this);
             }
-            
+
             EnchantmentHelper.func_151385_b(this, victim);
-            
+
             setLastAttacker(victim);
-            
+
             // play eating sound
             float volume = getSoundVolume() * 0.7f;
             float pitch = getSoundPitch();
@@ -657,7 +655,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
 
         return attacked;
     }
-    
+
     /**
      * Called when the entity is attacked.
      */
@@ -666,13 +664,13 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         if (isInvulnerableTo(src)) {
             return false;
         }
-        
+
         // don't just sit there!
         aiSit.setSitting(false);
-        
+
         return super.attackEntityFrom(src, par2);
     }
-    
+
     /**
      * Return whether this entity should be rendered as on fire.
      */
@@ -680,7 +678,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public boolean canRenderOnFire() {
         return super.canRenderOnFire() && !getBreedHelper().getBreed().isImmuneToDamage(DamageSource.inFire);
     }
-    
+
     /**
      * Returns true if the mob is currently able to mate with the specified mob.
      */
@@ -688,7 +686,7 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public boolean canMateWith(EntityAnimal mate) {
         return getReproductionHelper().canMateWith(mate);
     }
-    
+
     /**
      * This function is used when two same-species animals in 'love mode' breed to generate the new baby animal.
      */
@@ -696,19 +694,19 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public EntityAgeable createChild(EntityAgeable mate) {
         return getReproductionHelper().createChild(mate);
     }
-    
+
     public DragonAnimator getAnimator() {
         return animator;
     }
-    
+
     private void addHelper(DragonHelper helper) {
         L.trace("addHelper({})", helper.getClass().getName());
         if (helpers == null) {
-            helpers = new HashMap<Class, DragonHelper>();
+            helpers = new HashMap<>();
         }
         helpers.put(helper.getClass(), helper);
     }
-    
+
     public <T extends DragonHelper> T getHelper(Class<T> clazz) {
         return (T) helpers.get(clazz);
     }
@@ -716,27 +714,27 @@ public class EntityTameableDragon extends EntityFlyingTameable {
     public DragonBreedHelper getBreedHelper() {
         return getHelper(DragonBreedHelper.class);
     }
-    
+
     public DragonLifeStageHelper getLifeStageHelper() {
         return getHelper(DragonLifeStageHelper.class);
     }
-    
+
     public DragonReproductionHelper getReproductionHelper() {
         return getHelper(DragonReproductionHelper.class);
     }
-    
+
     private DragonParticleHelper getParticleHelper() {
         return getHelper(DragonParticleHelper.class);
     }
-    
+
     public boolean getBooleanData(int index) {
         return (dataWatcher.getWatchableObjectByte(index) & 1) != 0;
     }
-    
+
     public void setBooleanData(int index, boolean value) {
-        dataWatcher.updateObject(index, Byte.valueOf(value ? (byte) 1 : (byte) 0));
+        dataWatcher.updateObject(index, value ? (byte) 1 : (byte) 0);
     }
-    
+
     /**
      * Returns true if the dragon is saddled.
      */
@@ -751,19 +749,19 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         L.trace("setSaddled({})", saddled);
         setBooleanData(INDEX_SADDLED, saddled);
     }
-    
+
     /**
      * Returns the breed for this dragon.
-     * 
+     *
      * @return breed
      */
     public DragonBreed getBreed() {
         return getBreedHelper().getBreed();
     }
-    
+
     /**
      * Sets the new breed for this dragon.
-     * 
+     *
      * @param breed new breed
      */
     public void setBreed(DragonBreed breed) {
@@ -777,29 +775,29 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             return null;
         }
     }
-    
+
     public void setRidingPlayer(EntityPlayer player) {
         L.trace("setRidingPlayer({})", player.getCommandSenderName());
         player.rotationYaw = this.rotationYaw;
         player.rotationPitch = this.rotationPitch;
         player.mountEntity(this);
     }
-    
+
     public void setControlFlags(BitSet flags) {
         controlFlags = flags;
     }
-    
+
     public BitSet getControlFlags() {
         return controlFlags;
     }
-    
+
     @Override
     public void updateRiderPosition() {
         if (riddenByEntity != null) {
             double px = posX;
             double py = posY + getMountedYOffset() + riddenByEntity.getYOffset();
             double pz = posZ;
-            
+
             // dragon position is the middle of the model and the saddle is on
             // the shoulders, so move player forwards on Z axis relative to the
             // dragon's rotation to fix that
@@ -808,19 +806,18 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             px += pos.xCoord;
             py += pos.yCoord;
             pz += pos.zCoord;
-                    
+
             riddenByEntity.setPosition(px, py, pz);
-            
+
             // fix rider rotation
-            if (riddenByEntity instanceof EntityLiving) {
-                EntityLiving rider = ((EntityLiving) riddenByEntity);
+            if (riddenByEntity instanceof EntityLiving rider) {
                 rider.prevRotationPitch = rider.rotationPitch;
                 rider.prevRotationYaw = rider.rotationYaw;
                 rider.renderYawOffset = renderYawOffset;
             }
         }
     }
-    
+
     public boolean isInvulnerableTo(DamageSource src) {
         Entity srcEnt = src.getEntity();
         if (srcEnt != null) {
@@ -828,41 +825,41 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             if (srcEnt == this) {
                 return true;
             }
-            
+
             // ignore damage from rider
             if (srcEnt == riddenByEntity) {
                 return true;
             }
         }
-        
+
         // don't drown as egg
         if (src.damageType.equals("drown") && isEgg()) {
             return true;
         }
-        
+
         return getBreed().isImmuneToDamage(src);
     }
-    
+
     /**
      * Returns the entity's health relative to the maximum health.
-     * 
+     *
      * @return health normalized between 0 and 1
      */
     public double getHealthRelative() {
         return getHealth() / (double) getMaxHealth();
     }
-    
+
     public int getDeathTime() {
         return deathTime;
     }
-    
+
     public int getMaxDeathTime() {
         return 120;
     }
-    
+
     /**
      * Client side method for wing animations. Plays wing flapping sounds.
-     * 
+     *
      * @param speed wing animation playback speed
      */
     public void onWingsDown(float speed) {
@@ -873,45 +870,45 @@ public class EntityTameableDragon extends EntityFlyingTameable {
             worldObj.playSound(posX, posY, posZ, "mob.enderdragon.wings", volume, pitch, false);
         }
     }
-    
+
     public void setImmuneToFire(boolean isImmuneToFire) {
         L.trace("setImmuneToFire({})", isImmuneToFire);
         this.isImmuneToFire = isImmuneToFire;
     }
-    
+
     public void setAttackDamage(double damage) {
         L.trace("setAttackDamage({})", damage);
         getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(damage);
     }
-    
+
     public double getAttackDamage() {
         return getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
     }
-    
+
     /**
      * Public wrapper for protected final setScale(), used by DragonLifeStageHelper.
-     * 
-     * @param scale 
+     *
+     * @param scale
      */
     public void setScalePublic(float scale) {
         double posXTmp = posX;
         double posYTmp = posY;
         double posZTmp = posZ;
-        
+
         setScale(scale);
-        
-        // workaround for a vanilla bug; the position is apparently not set correcty
+
+        // workaround for a vanilla bug; the position is apparently not set correctly
         // after changing the entity size, causing asynchronous server/client positioning
         setPosition(posXTmp, posYTmp, posZTmp);
     }
-    
+
     @Override
     public void setScaleForAge(boolean p_98054_1_) {
         // SetGrowingAge calls this to switch between half and full scale based
         // on isChild(), but the scale is managed in DragonLifeStageHelper, so
         // this is no-op here
     }
-    
+
     @SideOnly(Side.CLIENT)
     @Override
     public float getShadowSize() {
@@ -919,28 +916,28 @@ public class EntityTameableDragon extends EntityFlyingTameable {
         // (misleading method name, should be getShadowYOffset())
         return 0;
     }
-    
+
     /**
      * Returns the size multiplier for the current age.
-     * 
+     *
      * @return scale
      */
     public float getScale() {
         return getLifeStageHelper().getScale();
     }
-    
+
     public boolean isEgg() {
         return getLifeStageHelper().isEgg();
     }
-    
+
     public boolean isHatchling() {
         return getLifeStageHelper().isHatchling();
     }
-    
+
     public boolean isJuvenile() {
         return getLifeStageHelper().isJuvenile();
     }
-    
+
     public boolean isAdult() {
         return getLifeStageHelper().isAdult();
     }

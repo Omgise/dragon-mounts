@@ -25,11 +25,11 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Helper class for breed properties.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonBreedHelper extends DragonHelper {
-    
+
     private static final Logger L = LogManager.getLogger();
     private static final int BLOCK_RANGE = 2;
     private static final String NBT_BREED = "Breed";
@@ -38,11 +38,11 @@ public class DragonBreedHelper extends DragonHelper {
 
     private final DragonBreedRegistry registry = DragonBreedRegistry.getInstance();
     private final int dataIndex;
-    private Map<DragonBreed, AtomicInteger> breedPoints = new HashMap<DragonBreed, AtomicInteger>();
-    
+    private Map<DragonBreed, AtomicInteger> breedPoints = new HashMap<>();
+
     public DragonBreedHelper(EntityTameableDragon dragon, int dataIndex) {
         super(dragon);
-        
+
         this.dataIndex = dataIndex;
 
         if (dragon.isServer()) {
@@ -51,14 +51,14 @@ public class DragonBreedHelper extends DragonHelper {
                 breedPoints.put(breed, new AtomicInteger());
             }
         }
-        
+
         dataWatcher.addObject(dataIndex, DEFAULT_BREED);
     }
-    
+
     @Override
     public void writeToNBT(NBTTagCompound nbt) {
         nbt.setString(NBT_BREED, getBreed().getName());
-        
+
         NBTTagCompound breedPointTag = new NBTTagCompound();
         for (Map.Entry<DragonBreed, AtomicInteger> breedPoint : breedPoints.entrySet()) {
             breedPointTag.setInteger(breedPoint.getKey().getName(), breedPoint.getValue().get());
@@ -76,64 +76,64 @@ public class DragonBreedHelper extends DragonHelper {
                     dragon.getEntityId(), breedName, DEFAULT_BREED);
             newBreed = registry.getBreedByName(DEFAULT_BREED);
         }
-        
+
         setBreed(newBreed);
-        
+
         // read breed points
         NBTTagCompound breedPointTag = nbt.getCompoundTag(NBT_BREED_POINTS);
         for (Map.Entry<DragonBreed, AtomicInteger> breedPoint : breedPoints.entrySet()) {
             breedPoint.getValue().set(breedPointTag.getInteger(breedPoint.getKey().getName()));
         }
     }
-    
+
     public Map<DragonBreed, AtomicInteger> getBreedPoints() {
         return Collections.unmodifiableMap(breedPoints);
     }
-    
+
     public DragonBreed getBreed() {
         String breedName = dataWatcher.getWatchableObjectString(dataIndex);
-        
+
         DragonBreed breed = registry.getBreedByName(breedName);
         if (breed == null) {
             breed = registry.getBreedByName(DEFAULT_BREED);
         }
-        
+
         return breed;
     }
-    
+
     public void setBreed(DragonBreed newBreed) {
         L.trace("setBreed({})", newBreed);
-        
+
         if (newBreed == null) {
             throw new NullPointerException();
         }
-        
+
         // ignore breed changes on client side, it's controlled by the server
         if (dragon.isClient()) {
             return;
         }
-        
+
         // check if the breed actually changed
         DragonBreed oldBreed = getBreed();
         if (oldBreed == newBreed) {
             return;
         }
-        
+
         // switch breed stats
         oldBreed.onDisable(dragon);
         newBreed.onEnable(dragon);
-        
+
         // check for fire immunity and disable fire particles
         dragon.setImmuneToFire(newBreed.isImmuneToDamage(DamageSource.inFire) || newBreed.isImmuneToDamage(DamageSource.onFire) || newBreed.isImmuneToDamage(DamageSource.lava));
-        
+
         // update breed name
         dataWatcher.updateObject(dataIndex, newBreed.getName());
     }
-    
+
     @Override
     public void onLivingUpdate() {
         DragonBreed currentBreed = getBreed();
-        
+
         if (dragon.isEgg()) {
             // spawn breed-specific particles every other tick
             if (dragon.isClient() && dragon.ticksExisted % 2 == 0) {
@@ -198,7 +198,7 @@ public class DragonBreedHelper extends DragonHelper {
                 }
             }
         }
-        
+
         currentBreed.onUpdate(dragon);
     }
 
@@ -206,7 +206,7 @@ public class DragonBreedHelper extends DragonHelper {
     public void onDeath() {
         getBreed().onDeath(dragon);
     }
-    
+
     public void inheritBreed(EntityTameableDragon parent1, EntityTameableDragon parent2) {
         breedPoints.get(parent1.getBreed()).addAndGet(1800 + rand.nextInt(1800));
         breedPoints.get(parent2.getBreed()).addAndGet(1800 + rand.nextInt(1800));

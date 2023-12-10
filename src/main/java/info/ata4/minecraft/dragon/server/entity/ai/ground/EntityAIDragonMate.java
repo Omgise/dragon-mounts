@@ -11,15 +11,15 @@ package info.ata4.minecraft.dragon.server.entity.ai.ground;
 
 import info.ata4.minecraft.dragon.server.entity.EntityTameableDragon;
 import info.ata4.minecraft.dragon.server.entity.helper.DragonLifeStage;
-import java.util.List;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 /**
  * Derivative EntityAIMate class to deal with some special values that can't be
  * applied with an extension thanks to the visibility.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class EntityAIDragonMate extends EntityAIBase {
@@ -74,7 +74,7 @@ public class EntityAIDragonMate extends EntityAIBase {
     public void updateTask() {
         dragon.getLookHelper().setLookPositionWithEntity(dragonMate, 10.0F, (float) dragon.getVerticalFaceSpeed());
         dragon.getNavigator().tryMoveToEntityLiving(dragonMate, speed);
-        
+
         ++spawnBabyDelay;
 
         if (spawnBabyDelay == 60) {
@@ -88,16 +88,15 @@ public class EntityAIDragonMate extends EntityAIBase {
      */
     private EntityTameableDragon getNearbyMate() {
         double range = 12;
-        List<Entity> nearbyEntities = theWorld.getEntitiesWithinAABB(EntityTameableDragon.class,
+        List<EntityTameableDragon> nearbyEntities = theWorld.getEntitiesWithinAABB(EntityTameableDragon.class,
                 dragon.boundingBox.expand(range, range, range));
-        
-        for (Entity entity : nearbyEntities) {
-            EntityTameableDragon nearbyDragon = (EntityTameableDragon) entity;
-            if (dragon.canMateWith(nearbyDragon)) {
-                return nearbyDragon;
+
+        for (EntityTameableDragon entity : nearbyEntities) {
+            if (dragon.canMateWith(entity)) {
+                return entity;
             }
         }
-        
+
         return null;
     }
 
@@ -110,13 +109,13 @@ public class EntityAIDragonMate extends EntityAIBase {
         if (dragonBaby != null) {
             dragon.setGrowingAge(6000);
             dragonMate.setGrowingAge(6000);
-            
+
             dragon.resetInLove();
             dragonMate.resetInLove();
-            
+
             dragonBaby.setLocationAndAngles(dragon.posX, dragon.posY, dragon.posZ, 0, 0);
             dragonBaby.getLifeStageHelper().setLifeStage(DragonLifeStage.EGG);
-            
+
             theWorld.spawnEntityInWorld(dragonBaby);
 
             // TODO: particles for the clients?

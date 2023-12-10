@@ -25,9 +25,9 @@ import org.apache.logging.log4j.Logger;
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonLifeStageHelper extends DragonHelper {
-    
+
     private static final Logger L = LogManager.getLogger();
-    
+
     private DragonLifeStage lifeStagePrev;
     private DragonScaleModifier scaleModifier = new DragonScaleModifier();
     private int eggWiggleX;
@@ -36,7 +36,7 @@ public class DragonLifeStageHelper extends DragonHelper {
     public DragonLifeStageHelper(EntityTameableDragon dragon) {
         super(dragon);
     }
-    
+
     @Override
     public void applyEntityAttributes() {
         scaleModifier.setScale(getScale());
@@ -44,7 +44,7 @@ public class DragonLifeStageHelper extends DragonHelper {
         dragon.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(scaleModifier);
         dragon.getEntityAttribute(SharedMonsterAttributes.attackDamage).applyModifier(scaleModifier);
     }
-    
+
     /**
      * Generates some egg shell particles and a breaking sound.
      */
@@ -54,7 +54,7 @@ public class DragonLifeStageHelper extends DragonHelper {
         int bz = (int) Math.round(dragon.posZ - 0.5);
         dragon.worldObj.playAuxSFX(2001, bx, by, bz, Block.getIdFromBlock(Blocks.dragon_egg));
     }
-    
+
     public int getEggWiggleX() {
         return eggWiggleX;
     }
@@ -62,10 +62,10 @@ public class DragonLifeStageHelper extends DragonHelper {
     public int getEggWiggleZ() {
         return eggWiggleZ;
     }
-    
+
     /**
      * Returns the current life stage of the dragon.
-     * 
+     *
      * @return current life stage
      */
     public DragonLifeStage getLifeStage() {
@@ -80,10 +80,10 @@ public class DragonLifeStageHelper extends DragonHelper {
             return EGG;
         }
     }
-    
+
     /**
      * Returns the size multiplier for the current age.
-     * 
+     *
      * @return size
      */
     public float getScale() {
@@ -91,11 +91,11 @@ public class DragonLifeStageHelper extends DragonHelper {
         if (isEgg()) {
             return 0.9f / EntityTameableDragon.BASE_WIDTH;
         }
-        
+
         // use relative distance from the current age to the egg age as scale
         return 1 - (dragon.getGrowingAge() / (float) DragonLifeStage.EGG.ageLimit);
     }
-    
+
     /**
      * Transforms the dragon to an egg (item form)
      */
@@ -104,24 +104,24 @@ public class DragonLifeStageHelper extends DragonHelper {
             // no can do
             return;
         }
-        
+
         L.debug("transforming to egg");
 
         float volume = 1;
         float pitch = 0.5f + (0.5f - rand.nextFloat()) * 0.1f;
         dragon.worldObj.playSoundAtEntity(dragon, "mob.endermen.portal", volume, pitch);
-        
+
         if (dragon.isSaddled()) {
             dragon.dropItem(Items.saddle, 1);
         }
-        
+
         dragon.entityDropItem(new ItemStack(Blocks.dragon_egg), 0);
         dragon.setDead();
     }
-    
+
     /**
      * Sets a new life stage for the dragon.
-     * 
+     *
      * @param lifeStage
      */
     public final void setLifeStage(DragonLifeStage lifeStage) {
@@ -129,31 +129,31 @@ public class DragonLifeStageHelper extends DragonHelper {
         dragon.setGrowingAge(lifeStage.ageLimit);
         updateLifeStage();
     }
-    
+
     /**
      * Called when the dragon enters a new life stage.
-     */ 
+     */
     private void onNewLifeStage(DragonLifeStage lifeStage, DragonLifeStage prevLifeStage) {
         L.trace("onNewLifeStage({},{})", prevLifeStage, lifeStage);
-        
+
         if (dragon.isClient()) {
-            if (prevLifeStage != null && prevLifeStage == EGG && lifeStage == HATCHLING) {
+            if (prevLifeStage == EGG && lifeStage == HATCHLING) {
                 playEggCrackEffect();
             }
         } else {
             // eggs and hatchlings can't fly
             dragon.setCanFly(lifeStage != EGG && lifeStage != HATCHLING);
-            
+
             // only hatchlings are small enough for doors
             // (eggs don't move on their own anyway and are ignored)
             dragon.getNavigator().setEnterDoors(lifeStage == HATCHLING);
-            
+
             // update AI states so the egg won't move
             if (lifeStage == EGG) {
                 dragon.setPathToEntity(null);
                 dragon.setAttackTarget(null);
             }
-            
+
             // update attribute modifier
             IAttributeInstance healthAttrib = dragon.getEntityAttribute(SharedMonsterAttributes.maxHealth);
             IAttributeInstance damageAttrib = dragon.getEntityAttribute(SharedMonsterAttributes.attackDamage);
@@ -180,12 +180,12 @@ public class DragonLifeStageHelper extends DragonHelper {
 //        if (dragon.isServer()) {
 //            dragon.setGrowingAge((int) ((((Math.sin(Math.toRadians(dragon.ticksExisted))) + 1) * 0.5) * EGG.ageLimit));
 //        }
-        
+
         updateLifeStage();
         updateEgg();
         updateScale();
     }
-    
+
     private void updateLifeStage() {
         // trigger event when a new life stage was reached
         DragonLifeStage lifeStage = getLifeStage();
@@ -194,12 +194,12 @@ public class DragonLifeStageHelper extends DragonHelper {
             lifeStagePrev = lifeStage;
         }
     }
-    
+
     private void updateEgg() {
         if (!isEgg()) {
             return;
         }
-        
+
         int age = dragon.getGrowingAge();
 
         // animate egg wiggle based on the time the eggs take to hatch
@@ -240,26 +240,26 @@ public class DragonLifeStageHelper extends DragonHelper {
     private void updateScale() {
         dragon.setScalePublic(getScale());
     }
-    
+
     @Override
     public void onDeath() {
         if (dragon.isClient() && isEgg()) {
             playEggCrackEffect();
         }
     }
-    
+
     public boolean isEgg() {
         return getLifeStage() == EGG;
     }
-    
+
     public boolean isHatchling() {
         return getLifeStage() == HATCHLING;
     }
-    
+
     public boolean isJuvenile() {
         return getLifeStage() == JUVENILE;
     }
-    
+
     public boolean isAdult() {
         return getLifeStage() == ADULT;
     }

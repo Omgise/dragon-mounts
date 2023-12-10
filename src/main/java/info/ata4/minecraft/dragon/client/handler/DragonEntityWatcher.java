@@ -23,25 +23,25 @@ import net.minecraft.client.settings.GameSettings;
 /**
  * Event handler that watches the currently ridden dragon entity. Used to change
  * the camera distance and to show button usage notices.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonEntityWatcher {
-    
+
     private final Minecraft mc = Minecraft.getMinecraft();
     private final float defaultThirdPersonDistance;
     private int noticeTicks;
     private boolean ridingDragon;
     private boolean ridingDragonPrev;
-    
+
     public DragonEntityWatcher() {
         defaultThirdPersonDistance = getThirdPersonDistance();
     }
-    
+
     private float getThirdPersonDistance() {
         return ReflectionHelper.getPrivateValue(EntityRenderer.class, mc.entityRenderer, PrivateFields.ENTITYRENDERER_THIRDPERSONDISTANCE);
     }
-    
+
     private void setThirdPersonDistance(float thirdPersonDistance) {
         ReflectionHelper.setPrivateValue(EntityRenderer.class, mc.entityRenderer, thirdPersonDistance, PrivateFields.ENTITYRENDERER_THIRDPERSONDISTANCE);
     }
@@ -51,13 +51,13 @@ public class DragonEntityWatcher {
         if (evt.phase != TickEvent.Phase.START) {
             return;
         }
-        
+
         if (mc.thePlayer == null) {
             return;
         }
 
         ridingDragon = mc.thePlayer.ridingEntity instanceof EntityTameableDragon;
-        
+
         // display a key binding notice after the vanilla notice
         if (ridingDragon && !ridingDragonPrev) {
             setThirdPersonDistance(6);
@@ -69,14 +69,14 @@ public class DragonEntityWatcher {
             if (noticeTicks > 0) {
                 noticeTicks--;
             }
-            
+
             if (noticeTicks == 1) {
                 String keyUpName = GameSettings.getKeyDisplayString(DragonControl.KEY_FLY_UP.getKeyCode());
                 String keyDownName = GameSettings.getKeyDisplayString(DragonControl.KEY_FLY_DOWN.getKeyCode());
-                mc.ingameGUI.func_110326_a(I18n.format("dragon.mountNotice", new Object[] {keyUpName, keyDownName}), false);
+                mc.ingameGUI.func_110326_a(I18n.format("dragon.mountNotice", keyUpName, keyDownName), false);
             }
         }
-        
+
         ridingDragonPrev = ridingDragon;
     }
 }

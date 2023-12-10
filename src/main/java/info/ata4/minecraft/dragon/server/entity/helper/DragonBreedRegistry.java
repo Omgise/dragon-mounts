@@ -9,7 +9,16 @@
  */
 package info.ata4.minecraft.dragon.server.entity.helper;
 
-import info.ata4.minecraft.dragon.server.entity.breeds.*;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreed;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedAir;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedEnd;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedFire;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedForest;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedGhost;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedIce;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedNether;
+import info.ata4.minecraft.dragon.server.entity.breeds.DragonBreedWater;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,23 +26,23 @@ import java.util.Map;
 
 /**
  * Central dragon breed registry.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonBreedRegistry {
-    
+
     private static DragonBreedRegistry instance;
-    
+
     public static DragonBreedRegistry getInstance() {
         if (instance == null) {
             instance = new DragonBreedRegistry();
         }
-        
+
         return instance;
     }
-    
-    private Map<String, DragonBreed> breeds = new HashMap<String, DragonBreed>();
-    
+
+    private Map<String, DragonBreed> breeds = new HashMap<>();
+
     private DragonBreedRegistry() {
         add(new DragonBreedAir());
         add(new DragonBreedEnd());
@@ -44,15 +53,15 @@ public class DragonBreedRegistry {
         add(new DragonBreedNether());
         add(new DragonBreedForest());
     }
-    
+
     private void add(DragonBreed breed) {
         breeds.put(breed.getName(), breed);
     }
-    
+
     public List<DragonBreed> getBreeds() {
-        return new ArrayList<DragonBreed>(breeds.values());
+        return new ArrayList<>(breeds.values());
     }
-    
+
     public DragonBreed getBreedByName(String name) {
         return breeds.get(name);
     }

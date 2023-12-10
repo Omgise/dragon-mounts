@@ -22,23 +22,23 @@ import org.apache.logging.log4j.Logger;
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class DragonReproductionHelper extends DragonHelper  {
-    
+
     private static final Logger L = LogManager.getLogger();
     public static final String NBT_BREEDER = "HatchedBy";
     public static final String NBT_REPRODUCED = "HasReproduced";
     public static final String NBT_REPRO_COUNT = "ReproductionCount";
-    
+
     public static final byte REPRO_LIMIT = 2;
-    
+
     private final int dataIndexBreeder;
     private final int dataIndexReproduced;
-    
+
     public DragonReproductionHelper(EntityTameableDragon dragon, int dataIndexBreeder, int dataIndexReproCount) {
         super(dragon);
-        
+
         this.dataIndexBreeder = dataIndexBreeder;
         this.dataIndexReproduced = dataIndexReproCount;
-        
+
         dataWatcher.addObject(dataIndexBreeder, "");
         dataWatcher.addObject(dataIndexReproCount, 0);
     }
@@ -52,7 +52,7 @@ public class DragonReproductionHelper extends DragonHelper  {
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         setBreederName(nbt.getString(NBT_BREEDER));
-                
+
         // convert old NBT format
         int reproCount = 0;
         if (!nbt.hasKey(NBT_REPRO_COUNT)) {
@@ -62,41 +62,41 @@ public class DragonReproductionHelper extends DragonHelper  {
         } else {
             reproCount = nbt.getInteger(NBT_REPRO_COUNT);
         }
-        
+
         setReproCount(reproCount);
     }
-    
+
     public int getReproCount() {
         return dataWatcher.getWatchableObjectInt(dataIndexReproduced);
     }
-    
+
     public void setReproCount(int reproCount) {
         L.trace("setReproCount({})", reproCount);
         dataWatcher.updateObject(dataIndexReproduced, reproCount);
     }
-    
+
     public void addReproduced() {
         setReproCount(getReproCount() + 1);
     }
-    
+
     public boolean canReproduce() {
         return getReproCount() < REPRO_LIMIT;
     }
-    
+
     public String getBreederName() {
         return dataWatcher.getWatchableObjectString(dataIndexBreeder);
     }
-    
+
     public EntityPlayer getBreeder() {
         String breederName = getBreederName();
         return dragon.worldObj.getPlayerEntityByName(breederName);
     }
-    
+
     public void setBreederName(String breederName) {
         L.trace("setBreederName({})", breederName);
         dataWatcher.updateObject(dataIndexBreeder, breederName);
     }
-    
+
     public boolean canMateWith(EntityAnimal mate) {
         if (mate == dragon) {
             // No. Just... no.
@@ -108,9 +108,9 @@ public class DragonReproductionHelper extends DragonHelper  {
         } else if (!canReproduce()) {
             return false;
         }
-        
+
         EntityTameableDragon dragonMate = (EntityTameableDragon) mate;
-        
+
         if (!dragonMate.isTamed()) {
             return false;
         } else if (!dragonMate.getReproductionHelper().canReproduce()) {
@@ -119,14 +119,13 @@ public class DragonReproductionHelper extends DragonHelper  {
             return dragon.isInLove() && dragonMate.isInLove();
         }
     }
-    
+
     public EntityAgeable createChild(EntityAgeable mate) {
-        if (!(mate instanceof EntityTameableDragon)) {
+        if (!(mate instanceof EntityTameableDragon parent2)) {
             throw new IllegalArgumentException("The mate isn't a dragon");
         }
-        
+
         EntityTameableDragon parent1 = dragon;
-        EntityTameableDragon parent2 = (EntityTameableDragon) mate;
         EntityTameableDragon baby = new EntityTameableDragon(dragon.worldObj);
 
         // mix the custom names in case both parents have one
@@ -169,34 +168,34 @@ public class DragonReproductionHelper extends DragonHelper  {
 
             baby.setCustomNameTag(babyName);
         }
-        
+
         // inherit the baby's breed from its parents
         baby.getBreedHelper().inheritBreed(parent1, parent2);
-        
+
         // increase reproduction counter
         parent1.getReproductionHelper().addReproduced();
         parent2.getReproductionHelper().addReproduced();
 
         return baby;
     }
-    
+
     private String fixChildName(String nameOld) {
         if (nameOld == null || nameOld.isEmpty()) {
             return nameOld;
         }
-        
+
         // create all lower-case char array
         char[] chars = nameOld.toLowerCase().toCharArray();
-        
+
         // convert first char to upper-case
         chars[0] = Character.toUpperCase(chars[0]);
-        
+
         String nameNew = new String(chars);
-        
+
         if (!nameOld.equals(nameNew)) {
-            L.debug("Fixed child name {} -> {}");
+            L.debug("Fixed child name {} -> {}", nameOld, nameNew);
         }
-        
+
         return nameNew;
     }
 }

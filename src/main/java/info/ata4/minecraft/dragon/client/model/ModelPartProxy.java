@@ -16,58 +16,58 @@ import java.util.List;
 /**
  * Proxy for a model part that is used to project one model renderer on multiple
  * visible instances.
- * 
+ *
  * @author Nico Bergemann <barracuda415 at yahoo.de>
  */
 public class ModelPartProxy {
-    
+
     // scale multiplier
     private float renderScaleX = 1;
     private float renderScaleY = 1;
     private float renderScaleZ = 1;
-    
+
     // rotation points
     private float rotationPointX;
     private float rotationPointY;
     private float rotationPointZ;
-    
+
     // rotation angles
     private float preRotateAngleX;
     private float preRotateAngleY;
     private float preRotateAngleZ;
-    
+
     private float rotateAngleX;
     private float rotateAngleY;
     private float rotateAngleZ;
-    
+
     // misc meta data
     private boolean hidden;
     private boolean showModel;
 
-    // projected parts and part childs
+    // projected parts and part children
     private final ModelPart part;
-    private final List<ModelPartProxy> childs;
-    
+    private final List<ModelPartProxy> children;
+
     /**
      * Constructs a new proxy for the given model part.
-     * 
+     *
      * @param part model part to project on this proxy
      */
     public ModelPartProxy(ModelPart part) {
         this.part = part;
-        
+
         if (part.childModels != null) {
-            childs = new ArrayList<ModelPartProxy>();
+            children = new ArrayList<>();
             for (Object childModel : part.childModels) {
-                childs.add(new ModelPartProxy((ModelPart) childModel));
+                children.add(new ModelPartProxy((ModelPart) childModel));
             }
         } else {
-            childs = null;
+            children = null;
         }
-        
+
         update();
     }
-    
+
     /**
      * Saves the properties of the model part to this proxy with the default
      * rendering scale.
@@ -76,11 +76,11 @@ public class ModelPartProxy {
         renderScaleX = part.renderScaleX;
         renderScaleY = part.renderScaleY;
         renderScaleZ = part.renderScaleZ;
-        
+
         rotationPointX = part.rotationPointX;
         rotationPointY = part.rotationPointY;
         rotationPointZ = part.rotationPointZ;
-        
+
         preRotateAngleX = part.preRotateAngleX;
         preRotateAngleY = part.preRotateAngleY;
         preRotateAngleZ = part.preRotateAngleZ;
@@ -92,13 +92,13 @@ public class ModelPartProxy {
         hidden = part.isHidden;
         showModel = part.showModel;
 
-        if (childs != null) {
-            for (ModelPartProxy child : childs) {
+        if (children != null) {
+            for (ModelPartProxy child : children) {
                 child.update();
             }
         }
     }
-    
+
     /**
      * Restores the properties from this proxy to the model part.
      */
@@ -106,29 +106,29 @@ public class ModelPartProxy {
         part.renderScaleX = renderScaleX;
         part.renderScaleY = renderScaleY;
         part.renderScaleZ = renderScaleZ;
-        
+
         part.rotationPointX = rotationPointX;
         part.rotationPointY = rotationPointY;
         part.rotationPointZ = rotationPointZ;
-        
+
         part.preRotateAngleX = preRotateAngleX;
         part.preRotateAngleY = preRotateAngleY;
         part.preRotateAngleZ = preRotateAngleZ;
-        
+
         part.rotateAngleX = rotateAngleX;
         part.rotateAngleY = rotateAngleY;
         part.rotateAngleZ = rotateAngleZ;
-        
+
         part.isHidden = hidden;
         part.showModel = showModel;
-        
-        if (childs != null) {
-            for (ModelPartProxy child : childs) {
+
+        if (children != null) {
+            for (ModelPartProxy child : children) {
                 child.apply();
             }
         }
     }
-    
+
     public void render(float scale) {
         apply();
         part.render(scale);
